@@ -1,19 +1,28 @@
 apply plugin: 'com.android.application'
 
 android {
-    compileSdkVersion 26
-    buildToolsVersion "26.0.1"
+    compileSdkVersion rootProject.ext.compileSdkVersion
+    buildToolsVersion rootProject.ext.buildToolsVersion
+
     defaultConfig {
         applicationId "xyz.openhh.xcameraview"
-        minSdkVersion 16
-        targetSdkVersion 26
-        versionCode 1
-        versionName "1.0"
+        minSdkVersion rootProject.ext.minSdkVersion
+        targetSdkVersion rootProject.ext.targetSdkVersion
+        versionCode rootProject.ext.versionCode
+        versionName rootProject.ext.versionName
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
         externalNativeBuild {
             cmake {
-                cppFlags "-frtti -fexceptions"
+                cppFlags "-std=c++11 -frtti -fexceptions -DANDROID -Wno-unused-variable "
+                arguments '-DANDROID_PLATFORM=android-16',
+                        '-DANDROID_TOOLCHAIN=clang', '-DANDROID_STL=gnustl_static',
+                        '-DANDROID_ABI=armeabi'
             }
+        }
+
+        ndk {
+//            stl 'gnustl_static'
+            abiFilters 'armeabi'
         }
     }
     buildTypes {
@@ -22,19 +31,17 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
-//    externalNativeBuild {
-//        cmake {
-//            path "CMakeLists.txt"
-//        }
-//    }
+    externalNativeBuild {
+        cmake {
+            path "CMakeLists.txt"
+        }
+    }
 }
 
 dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
-    androidTestCompile('com.android.support.test.espresso:espresso-core:2.2.2', {
-        exclude group: 'com.android.support', module: 'support-annotations'
-    })
-    compile 'com.android.support:appcompat-v7:26.+'
-    compile 'com.android.support.constraint:constraint-layout:1.0.2'
-    testCompile 'junit:junit:4.12'
+    compile "com.android.support:appcompat-v7:${rootProject.ext.supportLibVersion}"
+
+    releaseCompile project(path:':imagecore',configuration:'release')
+    debugCompile project(path:':imagecore',configuration:'debug')
 }

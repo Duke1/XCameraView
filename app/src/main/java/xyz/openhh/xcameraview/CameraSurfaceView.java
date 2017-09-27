@@ -25,6 +25,8 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.List;
 
+import xyz.openhh.imagecore.Image;
+
 /**
  * Created by Duke
  */
@@ -290,6 +292,7 @@ public class CameraSurfaceView extends RelativeLayout implements SurfaceHolder.C
             try {
                 // 获得图片
                 bm = BitmapFactory.decodeByteArray(data, 0, data.length);
+                Image.nativeDecodeByteArray(data, 0, data.length, null);
                 newBm = setTakePicktrueOrientation(android.hardware.Camera.CameraInfo.CAMERA_FACING_BACK, bm);
                 bm.recycle();
                 bm = null;
@@ -300,8 +303,8 @@ public class CameraSurfaceView extends RelativeLayout implements SurfaceHolder.C
                         file.createNewFile();
                     }
                     bos = new BufferedOutputStream(new FileOutputStream(file));
-                    newBm.compress(Bitmap.CompressFormat.JPEG, 100, bos);//将图片压缩到流中
-
+//                    newBm.compress(Bitmap.CompressFormat.JPEG, 100, bos);//将图片压缩到流中
+                    Image.compress(newBm, Image.CompressFormat.JPEG, 100, bos);
                 } else {
                     Toast.makeText(mContext, "没有检测到内存卡", Toast.LENGTH_SHORT).show();
                 }
