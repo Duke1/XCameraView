@@ -282,7 +282,7 @@ public class CameraSurfaceView extends RelativeLayout implements SurfaceHolder.C
         @Override
         public void onPictureTaken(byte[] data, Camera Camera) {
             BufferedOutputStream bos = null;
-            Bitmap bm = null, newBm = null;
+            Bitmap bm = null;
             String filePath =
                     new StringBuilder()
                             .append(getImageStoreDirectory())
@@ -293,33 +293,21 @@ public class CameraSurfaceView extends RelativeLayout implements SurfaceHolder.C
                 // 获得图片
                 bm = BitmapFactory.decodeByteArray(data, 0, data.length);
                 Image.nativeDecodeByteArray(data, 0, data.length, null);
-                newBm = setTakePicktrueOrientation(android.hardware.Camera.CameraInfo.CAMERA_FACING_BACK, bm);
-                bm.recycle();
-                bm = null;
+//                newBm = setTakePicktrueOrientation(android.hardware.Camera.CameraInfo.CAMERA_FACING_BACK, bm);
+//                bm.recycle();
+//                bm = null;
                 if (Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED)) {
-
-                    File file = new File(filePath);
-                    if (!file.exists()) {
-                        file.createNewFile();
-                    }
-                    bos = new BufferedOutputStream(new FileOutputStream(file));
-//                    newBm.compress(Bitmap.CompressFormat.JPEG, 100, bos);//将图片压缩到流中
-                    Image.compress(newBm, Image.CompressFormat.JPEG, 100, bos);
+                    Image.compress(bm, Image.CompressFormat.JPEG, 50, filePath);
                 } else {
                     Toast.makeText(mContext, "没有检测到内存卡", Toast.LENGTH_SHORT).show();
                 }
-            } catch (IOException ioe) {
-                Toast.makeText(mContext, ioe.getMessage(), Toast.LENGTH_SHORT).show();
             } catch (Exception e) {
                 e.printStackTrace();
             } finally {
                 try {
-                    bos.flush();//输出
-                    bos.close();//关闭
-                    newBm.recycle();// 回收bitmap空间
                     mCamera.stopPreview();// 关闭预览
                     mCamera.startPreview();// 开启预览
-                } catch (IOException e) {
+                } catch (Exception e) {
                     e.printStackTrace();
                 }
 

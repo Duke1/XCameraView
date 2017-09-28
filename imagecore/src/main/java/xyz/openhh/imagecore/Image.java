@@ -32,18 +32,14 @@ public class Image {
 
     public native static Bitmap nativeDecodeByteArray(byte[] data, int offset, int length, BitmapFactory.Options opts);
 
-    private static native boolean nativeCompress(Bitmap bitmap, int format, int quality, OutputStream stream, byte[] tempStorage);
+    private static native boolean nativeCompress(Bitmap bitmap, int format, int quality, byte[] tempStorage, String savePath);
 
 
-    public static boolean compress(Bitmap bitmap, CompressFormat format, int quality, OutputStream stream) {
-        if (stream == null) {
-            throw new NullPointerException();
-        }
+    public static boolean compress(Bitmap bitmap, CompressFormat format, int quality, String savePath) {
         if (quality < 0 || quality > 100) {
             throw new IllegalArgumentException("quality must be 0..100");
         }
-        boolean result = nativeCompress(bitmap, format.nativeInt,
-                quality, stream, new byte[WORKING_COMPRESS_STORAGE]);
+        boolean result = nativeCompress(bitmap, format.nativeInt, quality, new byte[WORKING_COMPRESS_STORAGE], savePath);
         return result;
     }
 }
