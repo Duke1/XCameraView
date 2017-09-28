@@ -292,7 +292,7 @@ public class CameraSurfaceView extends RelativeLayout implements SurfaceHolder.C
             try {
                 // 获得图片
                 bm = BitmapFactory.decodeByteArray(data, 0, data.length);
-                Image.nativeDecodeByteArray(data, 0, data.length, null);
+                Image.saveToFile(data, Image.CompressFormat.JPEG, 50, filePath);
 //                newBm = setTakePicktrueOrientation(android.hardware.Camera.CameraInfo.CAMERA_FACING_BACK, bm);
 //                bm.recycle();
 //                bm = null;

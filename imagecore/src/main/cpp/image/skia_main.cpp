@@ -24,52 +24,7 @@ enum JavaEncodeFormat {
 };
 
 
-static jobject doDecode(JNIEnv *env, SkStreamRewindable *stream, jobject padding, jobject options) {
-    std::unique_ptr<SkStreamRewindable> streamDeleter(stream);
-
-    int sampleSize = 1;
-    bool onlyDecodeSize = false;
-    SkColorType prefColorType = kN32_SkColorType;
-    bool isHardware = false;
-    bool isMutable = false;
-    float scale = 1.0f;
-    bool requireUnpremultiplied = false;
-    sk_sp<SkColorSpace> prefColorSpace = nullptr;
-
-    // Create the codec.
-    NinePatchPeeker peeker;
-    std::unique_ptr<SkAndroidCodec> codec(SkAndroidCodec::NewFromStream(
-            streamDeleter.release(), &peeker));
-    if (!codec.get()) {
-//        return nullObjectReturn("SkAndroidCodec::NewFromStream returned null");
-    }
-
-    // Determine the output size.
-    SkISize size = codec->getSampledDimensions(sampleSize);
-
-    // Set the decode colorType
-    SkColorType decodeColorType = codec->computeOutputColorType(prefColorType);
-    sk_sp<SkColorSpace> decodeColorSpace = codec->computeOutputColorSpace(
-            decodeColorType, prefColorSpace);
-
-    SkAndroidCodec::AndroidOptions opts;
-    opts.fSampleSize = 1;
-    auto info = codec->getInfo().makeWH(size.fWidth, size.fHeight).makeColorType(kN32_SkColorType);
-    SkBitmap bm;
-    bm.allocPixels(info);
-    auto result = codec->getAndroidPixels(info, bm.getPixels(), bm.rowBytes(), &opts);
-
-    SkWStream *outputStream = new SkFILEWStream("/sdcard/ACamera/a11.jpeg");
-    SkEncodeImage(outputStream/*strm.get()*/, bm, SkEncodedImageFormat::kJPEG, 100) ? JNI_TRUE
-                                                                                    : JNI_FALSE;
-    outputStream->flush();
-    delete outputStream;
-
-    return NULL;
-}
-
-
-static jboolean Bitmap_compress(JNIEnv *env, jobject clazz, jobject bitmapin,
+static jboolean bitmap_compress(JNIEnv *env, jobject clazz, jobject bitmapin,
                                 jint format, jint quality, jbyteArray jstorage, jstring savePath) {
     SkEncodedImageFormat fm;
     switch (format) {
@@ -127,28 +82,85 @@ static jboolean Bitmap_compress(JNIEnv *env, jobject clazz, jobject bitmapin,
 }
 
 
-static jobject nativeDecodeByteArray(JNIEnv *env, jobject, jbyteArray byteArray,
-                                     jint offset, jint length, jobject options) {
+static jboolean
+bitmap_save(JNIEnv *env, jobject clazz, jint format, jbyteArray byteArray, jint offset,
+            jint length, jint quality, jstring savePath) {
+
+    SkEncodedImageFormat fm;
+    switch (format) {
+        case kJPEG_JavaEncodeFormat:
+            fm = SkEncodedImageFormat::kJPEG;
+            break;
+        case kPNG_JavaEncodeFormat:
+            fm = SkEncodedImageFormat::kPNG;
+            break;
+        case kWEBP_JavaEncodeFormat:
+            fm = SkEncodedImageFormat::kWEBP;
+            break;
+        default:
+            return JNI_FALSE;
+    }
 
     AutoJavaByteArray ar(env, byteArray);
     std::unique_ptr<SkMemoryStream> stream(new SkMemoryStream(ar.ptr() + offset, length, false));
-    return doDecode(env, stream.release(), NULL, options);
+
+    std::unique_ptr<SkStreamRewindable> streamDeleter(stream.release());
+
+    int sampleSize = 1;
+    SkColorType prefColorType = kN32_SkColorType;
+    float scale = 1.0f;
+    sk_sp<SkColorSpace> prefColorSpace = nullptr;
+
+    // Create the codec.
+    NinePatchPeeker peeker;
+    std::unique_ptr<SkAndroidCodec> codec(SkAndroidCodec::NewFromStream(
+            streamDeleter.release(), &peeker));
+    if (!codec.get()) {
+        LOGE("SkAndroidCodec::NewFromStream returned null");
+        return JNI_FALSE;
+    }
+
+    // Determine the output size.
+    SkISize size = codec->getSampledDimensions(sampleSize);
+
+    // Set the decode colorType
+    SkColorType decodeColorType = codec->computeOutputColorType(prefColorType);
+    sk_sp<SkColorSpace> decodeColorSpace = codec->computeOutputColorSpace(
+            decodeColorType, prefColorSpace);
+
+    SkAndroidCodec::AndroidOptions opts;
+    opts.fSampleSize = 1;
+    auto info = codec->getInfo().makeWH(size.fWidth, size.fHeight).makeColorType(kN32_SkColorType);
+    SkBitmap bm;
+    bm.allocPixels(info);
+    codec->getAndroidPixels(info, bm.getPixels(), bm.rowBytes(), &opts);
+
+    //encode and save to file
+    char *fileName = (char *) env->GetStringUTFChars(savePath, JNI_FALSE);
+    SkWStream *outputStream = new SkFILEWStream(fileName);
+    int isSuccess = SkEncodeImage(outputStream/*strm.get()*/, bm, fm, quality) ? JNI_TRUE
+                                                                               : JNI_FALSE;
+    outputStream->flush();
+    delete outputStream;
+
+    env->ReleaseStringUTFChars(savePath, fileName);
+    return isSuccess;
 }
 
-static void native_handle(jbyteArray byteArray) {
-
-}
 
 const char *classPathName = "xyz/openhh/imagecore/Image";
 
 static JNINativeMethod methods[] = {
         {
-                "compressToJpeg",        "([B)V",                                                                   (void *) native_handle
+                "nativeSave",
+                "(I[BIIILjava/lang/String;)Z",
+                (void *) bitmap_save
         },
-        {       "nativeDecodeByteArray", "([BIILandroid/graphics/BitmapFactory$Options;)Landroid/graphics/Bitmap;", (void *) nativeDecodeByteArray
-        },
-        {       "nativeCompress",        "(Landroid/graphics/Bitmap;II[BLjava/lang/String;)Z",
-                                                                                                                    (void *) Bitmap_compress}
+        {
+                "nativeCompress",
+                "(Landroid/graphics/Bitmap;II[BLjava/lang/String;)Z",
+                (void *) bitmap_compress
+        }
 };
 
 
