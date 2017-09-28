@@ -7,6 +7,7 @@
 #include "NinePatchPeeker.h"
 #include <SkAndroidCodec.h>
 #include "SkImageEncoder.h"
+#include "SkCanvas.h"
 
 
 #include <android/bitmap.h>
@@ -131,15 +132,45 @@ bitmap_save(JNIEnv *env, jobject clazz, jint format, jbyteArray byteArray, jint 
     SkAndroidCodec::AndroidOptions opts;
     opts.fSampleSize = 1;
     auto info = codec->getInfo().makeWH(size.fWidth, size.fHeight).makeColorType(kN32_SkColorType);
-    SkBitmap bm;
-    bm.allocPixels(info);
-    codec->getAndroidPixels(info, bm.getPixels(), bm.rowBytes(), &opts);
+    SkBitmap *bm = new SkBitmap();
+    bm->allocPixels(info);
+    codec->getAndroidPixels(info, bm->getPixels(), bm->rowBytes(), &opts);
+
+    {
+        const SkRect g_rtImg = SkRect::MakeXYWH(0, 0, bm->width(), bm->height());
+        SkRect deviceR;
+
+        SkMatrix matrix;
+        matrix.reset();
+        matrix.postRotate(90);
+        matrix.mapRect(&deviceR, g_rtImg);
+
+        SkBitmap *newBitmap = new SkBitmap();
+        SkImageInfo imageInfo = SkImageInfo::MakeS32(deviceR.width(), deviceR.height(),
+                                                     kPremul_SkAlphaType);
+        imageInfo.makeColorType(kN32_SkColorType);
+        newBitmap->allocPixels(imageInfo);//
+
+        SkPaint *paint = new SkPaint();
+        paint->setFilterQuality(kLow_SkFilterQuality);
+        paint->setAntiAlias(true);
+
+        SkCanvas *canvas = new SkCanvas(*newBitmap);
+        canvas->save();
+        canvas->translate(-deviceR.left(), -deviceR.top());
+        canvas->concat(matrix);
+        canvas->drawBitmapRect(*bm, g_rtImg, g_rtImg, paint);
+        canvas->restore();
+        delete bm;
+        delete paint;
+        bm = newBitmap;
+    }
 
     //encode and save to file
     char *fileName = (char *) env->GetStringUTFChars(savePath, JNI_FALSE);
     SkWStream *outputStream = new SkFILEWStream(fileName);
-    int isSuccess = SkEncodeImage(outputStream/*strm.get()*/, bm, fm, quality) ? JNI_TRUE
-                                                                               : JNI_FALSE;
+    int isSuccess = SkEncodeImage(outputStream/*strm.get()*/, *bm, fm, quality) ? JNI_TRUE
+                                                                                : JNI_FALSE;
     outputStream->flush();
     delete outputStream;
 

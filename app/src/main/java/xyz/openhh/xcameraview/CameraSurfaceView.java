@@ -282,7 +282,7 @@ public class CameraSurfaceView extends RelativeLayout implements SurfaceHolder.C
         @Override
         public void onPictureTaken(byte[] data, Camera Camera) {
             BufferedOutputStream bos = null;
-            Bitmap bm = null;
+//            Bitmap bm = null;
             String filePath =
                     new StringBuilder()
                             .append(getImageStoreDirectory())
@@ -291,16 +291,16 @@ public class CameraSurfaceView extends RelativeLayout implements SurfaceHolder.C
                             .append(".jpg").toString();//照片保存路径
             try {
                 // 获得图片
-                bm = BitmapFactory.decodeByteArray(data, 0, data.length);
+//                bm = BitmapFactory.decodeByteArray(data, 0, data.length);
                 Image.saveToFile(data, Image.CompressFormat.JPEG, 50, filePath);
 //                newBm = setTakePicktrueOrientation(android.hardware.Camera.CameraInfo.CAMERA_FACING_BACK, bm);
 //                bm.recycle();
 //                bm = null;
-                if (Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED)) {
-                    Image.compress(bm, Image.CompressFormat.JPEG, 50, filePath);
-                } else {
-                    Toast.makeText(mContext, "没有检测到内存卡", Toast.LENGTH_SHORT).show();
-                }
+//                if (Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED)) {
+//                    Image.compress(bm, Image.CompressFormat.JPEG, 50, filePath);
+//                } else {
+//                    Toast.makeText(mContext, "没有检测到内存卡", Toast.LENGTH_SHORT).show();
+//                }
             } catch (Exception e) {
                 e.printStackTrace();
             } finally {
