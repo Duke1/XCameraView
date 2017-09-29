@@ -19,10 +19,15 @@ add_library( # Sets the name of the library.
              SHARED
 
              # Provides a relative path to your source file(s).
+
+             src/main/cpp/JniHelper.cpp
+
              #src/main/cpp/image/CreateJavaOutputStreamAdaptor.cpp
              src/main/cpp/image/NinePatchPeeker.cpp
-             src/main/cpp/image/skia_main.cpp
+             src/main/cpp/image/ImageMatrix.cpp
+             src/main/cpp/image/Image.cpp
              src/main/cpp/yuv_decoder.cpp
+             src/main/cpp/main.cpp
              )
 
 # Searches for a specified prebuilt library and stores the path as a
@@ -52,6 +57,9 @@ target_link_libraries( # Specifies the target library.
                        android
 
                        jnigraphics
+
+                       GLESv2
+                       EGL
 
                        ${SKIA_LIB_PATH}/image/skia/${ANDROID_ABI}/libskia.a
 
