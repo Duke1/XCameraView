@@ -9,6 +9,8 @@ public class ImageMatrix {
 
     private static native long nCreate(long native_src_or_zero);
 
+    private static native void nDestory(long nObject);
+
     private static native void nPostRotate(long nObject, float degrees);
 
     private static native void nPostScale(long nObject, float sx, float sy);
@@ -26,4 +28,15 @@ public class ImageMatrix {
         nPostScale(native_instance, sx, sy);
         return true;
     }
+
+    @Override
+    protected void finalize() throws Throwable {
+        try {
+            nDestory(native_instance);
+            native_instance = 0;  // Other finalizers can still call us.
+        } finally {
+            super.finalize();
+        }
+    }
+
 }

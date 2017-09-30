@@ -300,7 +300,6 @@ public class CameraSurfaceView extends RelativeLayout implements SurfaceHolder.C
 
                 ImageMatrix matrix = new ImageMatrix();
                 matrix.postRotate(info.orientation);
-                matrix.postScale(-1f, 1f);
 
                 Image.saveToFile(data, Image.CompressFormat.JPEG, 50, filePath, matrix);
 
