@@ -1,1 +1,1 @@
-include ':app', ':imagecore'
+include ':app', ':ImageLib'

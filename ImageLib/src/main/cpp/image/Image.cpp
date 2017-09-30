@@ -80,7 +80,7 @@ jboolean Image::Image::bitmap_compress(JNIEnv *env, jobject clazz, jobject bitma
 jboolean
 Image::Image::bitmap_save(JNIEnv *env, jobject clazz, jint format, jbyteArray byteArray,
                           jint offset,
-                          jint length, jint quality, jstring savePath) {
+                          jint length, jint quality, jstring savePath, jlong matrixPtr) {
 
     SkEncodedImageFormat fm;
     switch (format) {
@@ -138,14 +138,13 @@ Image::Image::bitmap_save(JNIEnv *env, jobject clazz, jint format, jbyteArray by
     env->ReleaseStringUTFChars(savePath, fileName);
     int isSuccess;
 
-    if (1) {
+    if (matrixPtr) {
         const SkRect g_rtImg = SkRect::MakeXYWH(0, 0, bm->width(), bm->height());
         SkRect deviceR;
 
-        SkMatrix matrix;
-        matrix.reset();
-        matrix.postRotate(90);
-        matrix.mapRect(&deviceR, g_rtImg);
+        SkMatrix *matrix = reinterpret_cast<SkMatrix *>(matrixPtr);
+        //matrix->reset();
+        matrix->mapRect(&deviceR, g_rtImg);
 
         SkImageInfo imageInfo = SkImageInfo::MakeS32(deviceR.width(), deviceR.height(),
                                                      kPremul_SkAlphaType);
@@ -175,7 +174,7 @@ Image::Image::bitmap_save(JNIEnv *env, jobject clazz, jint format, jbyteArray by
         SkCanvas *canvas = surface->getCanvas();
         canvas->save();
         canvas->translate(-deviceR.left(), -deviceR.top());
-        canvas->concat(matrix);
+        canvas->concat(*matrix);
         canvas->drawBitmapRect(*bm, g_rtImg, g_rtImg, paint);
         canvas->restore();
 

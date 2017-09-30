@@ -42,6 +42,6 @@ dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
     compile "com.android.support:appcompat-v7:${rootProject.ext.supportLibVersion}"
 
-    releaseCompile project(path:':imagecore',configuration:'release')
-    debugCompile project(path:':imagecore',configuration:'debug')
+    releaseCompile project(path: ':ImageLib',configuration:'release')
+    debugCompile project(path: ':ImageLib',configuration:'debug')
 }

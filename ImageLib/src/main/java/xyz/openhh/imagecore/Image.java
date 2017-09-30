@@ -22,13 +22,16 @@ public class Image {
     }
 
     static {
-        System.loadLibrary("imageengine");
+        System.loadLibrary("image_kit");
     }
 
-    private static native boolean nativeSave(int format, byte[] data, int offset, int length, int quality, String savePath);
+    private static native boolean nativeSave(int format, byte[] data, int offset, int length, int quality, String savePath, long matrixPtr);
 
     private static native boolean nativeCompress(Bitmap bitmap, int format, int quality, byte[] tempStorage, String savePath);
 
+    public static boolean init() {
+        return true;
+    }
 
     public static boolean compress(Bitmap bitmap, CompressFormat format, int quality, String savePath) {
         if (null == bitmap || bitmap.isRecycled()) return false;
@@ -48,11 +51,15 @@ public class Image {
      * @param savePath
      * @return
      */
-    public static boolean saveToFile(byte[] data, CompressFormat format, int quality, String savePath) {
+    public static boolean saveToFile(byte[] data, CompressFormat format, int quality, String savePath, ImageMatrix matrix) {
         if (null == data) return false;
         if (quality < 0 || quality > 100) {
             throw new IllegalArgumentException("quality must be 0..100");
         }
-        return nativeSave(format.nativeInt, data, 0, data.length, quality, savePath);
+        return nativeSave(format.nativeInt, data, 0, data.length, quality, savePath, null == matrix ? 0 : matrix.native_instance);
+    }
+
+    public static boolean saveToFile(byte[] data, CompressFormat format, int quality, String savePath) {
+        return saveToFile(data, format, quality, savePath, null);
     }
 }

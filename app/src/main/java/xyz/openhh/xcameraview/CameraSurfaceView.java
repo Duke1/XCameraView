@@ -26,6 +26,7 @@ import java.io.IOException;
 import java.util.List;
 
 import xyz.openhh.imagecore.Image;
+import xyz.openhh.imagecore.ImageMatrix;
 
 /**
  * Created by Duke
@@ -65,6 +66,9 @@ public class CameraSurfaceView extends RelativeLayout implements SurfaceHolder.C
 
         getScreenMetrix(context);
         initView();
+
+
+        Image.init();
     }
 
 
@@ -293,9 +297,12 @@ public class CameraSurfaceView extends RelativeLayout implements SurfaceHolder.C
 
                 Camera.CameraInfo info = new Camera.CameraInfo();
                 Camera.getCameraInfo(android.hardware.Camera.CameraInfo.CAMERA_FACING_BACK, info);
-//                float a = ;
 
-                Image.saveToFile(data, Image.CompressFormat.JPEG, 50, filePath);
+                ImageMatrix matrix = new ImageMatrix();
+                matrix.postRotate(info.orientation);
+                matrix.postScale(-1f, 1f);
+
+                Image.saveToFile(data, Image.CompressFormat.JPEG, 50, filePath, matrix);
 
                 exTime = System.currentTimeMillis() - exTime;
                 Log.e("", "excute time :  " + (exTime / 1000f));
