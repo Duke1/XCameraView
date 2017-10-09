@@ -294,12 +294,12 @@ public class CameraSurfaceView extends RelativeLayout implements SurfaceHolder.C
             try {
                 long exTime = System.currentTimeMillis();
 
+                ImageMatrix matrix = null;
 
-                Camera.CameraInfo info = new Camera.CameraInfo();
-                Camera.getCameraInfo(android.hardware.Camera.CameraInfo.CAMERA_FACING_BACK, info);
-
-                ImageMatrix matrix = new ImageMatrix();
-                matrix.postRotate(info.orientation);
+//                Camera.CameraInfo info = new Camera.CameraInfo();
+//                Camera.getCameraInfo(android.hardware.Camera.CameraInfo.CAMERA_FACING_BACK, info);
+//                matrix = new ImageMatrix();
+//                matrix.postRotate(info.orientation);
 
                 Image.saveToFile(data, Image.CompressFormat.JPEG, 50, filePath, matrix);
 
