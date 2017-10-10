@@ -22,7 +22,7 @@ android {
 
         ndk {
 //            stl 'gnustl_static'
-            abiFilters 'armeabi'
+            abiFilters 'armeabi-v7a'
         }
     }
     buildTypes {

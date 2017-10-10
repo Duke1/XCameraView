@@ -16,13 +16,12 @@ android {
             cmake {
                 cppFlags "-std=c++11 -frtti -fexceptions -DANDROID -Wno-unused-variable "
                 arguments '-DANDROID_PLATFORM=android-16',
-                        '-DANDROID_TOOLCHAIN=clang', '-DANDROID_STL=gnustl_static',
-                        '-DANDROID_ABI=armeabi'
+                        '-DANDROID_TOOLCHAIN=clang', '-DANDROID_STL=gnustl_static'
             }
         }
         ndk {
 //            stl 'gnustl_static'
-            abiFilters 'armeabi'
+            abiFilters 'armeabi-v7a'
         }
     }
     buildTypes {

@@ -27,7 +27,6 @@ import xyz.openhh.imagecore.Image;
 import xyz.openhh.imagecore.ImageMatrix;
 
 public class CameraGLSurfaceView extends GLSurfaceView implements Renderer, SurfaceTexture.OnFrameAvailableListener, ICameraView {
-    private static final String TAG = "yanzi";
     Context mContext;
     SurfaceTexture mSurface;
     int mTextureID = -1;
@@ -128,7 +127,7 @@ public class CameraGLSurfaceView extends GLSurfaceView implements Renderer, Surf
             Log.i(TAG, "pictureSizeList size.width=" + size.width + "  size.height=" + size.height);
         }
         /**从列表中选取合适的分辨率*/
-        Camera.Size picSize = getProperSize(pictureSizeList, ((float) height / width));
+        Camera.Size picSize = getProperSize(pictureSizeList, width, height);
         if (null == picSize) {
             Log.i(TAG, "null == picSize");
             picSize = parameters.getPictureSize();
@@ -138,7 +137,8 @@ public class CameraGLSurfaceView extends GLSurfaceView implements Renderer, Surf
         float w = picSize.width;
         float h = picSize.height;
         parameters.setPictureSize(picSize.width, picSize.height);
-//        mCameraSurfaceView.setLayoutParams(new RelativeLayout.LayoutParams((int) (height * (h / w)), height));
+
+//        this.setLayoutParams(new RelativeLayout.LayoutParams((int) (height * (h / w)), height));
 
         // 获取摄像头支持的PreviewSize列表
         List<Camera.Size> previewSizeList = parameters.getSupportedPreviewSizes();
@@ -146,7 +146,7 @@ public class CameraGLSurfaceView extends GLSurfaceView implements Renderer, Surf
         for (Camera.Size size : previewSizeList) {
             Log.i(TAG, "previewSizeList size.width=" + size.width + "  size.height=" + size.height);
         }
-        Camera.Size preSize = getProperSize(previewSizeList, ((float) height) / width);
+        Camera.Size preSize = getProperSize(previewSizeList, width, height);
         if (null != preSize) {
             Log.i(TAG, "preSize.width=" + preSize.width + "  preSize.height=" + preSize.height);
             parameters.setPreviewSize(preSize.width, preSize.height);
@@ -204,12 +204,14 @@ public class CameraGLSurfaceView extends GLSurfaceView implements Renderer, Surf
      * <p>注意：这里的w对应屏幕的height
      * h对应屏幕的width<p/>
      */
-    private Camera.Size getProperSize(List<Camera.Size> pictureSizeList, float screenRatio) {
+    private Camera.Size getProperSize(List<Camera.Size> pictureSizeList, int width, int height) {
+        float screenRatio = ((float) height / width);
         Log.i(TAG, "screenRatio=" + screenRatio);
         Camera.Size result = null;
         for (Camera.Size size : pictureSizeList) {
             float currentRatio = ((float) size.width) / size.height;
             if (currentRatio - screenRatio == 0) {
+//            if (size.width == width) {
                 result = size;
                 break;
             }

@@ -98,123 +98,78 @@ struct engine {
 /**
  * Initialize an EGL context for the current display.
  */
-static void egl_init_display(struct engine *engine) {
-    // Initialize OpenGL ES and EGL
-
-    const EGLint configAttribs[] = {
-            EGL_RENDERABLE_TYPE, EGL_OPENGL_ES2_BIT,
-            EGL_SURFACE_TYPE, EGL_PBUFFER_BIT/*EGL_WINDOW_BIT*/,
-            EGL_BLUE_SIZE, 8,
-            EGL_GREEN_SIZE, 8,
-            EGL_RED_SIZE, 8,
-            EGL_ALPHA_SIZE, 8,
-            EGL_STENCIL_SIZE, 8,
-            EGL_NONE
-    };
-
-    const EGLint contextAttribs[] = {
-            EGL_CONTEXT_CLIENT_VERSION, 2,
-            EGL_NONE
-    };
-
-    const EGLint surfaceAttribs[] = {
-            EGL_RENDER_BUFFER, EGL_BACK_BUFFER,
-            EGL_CONTEXT_CLIENT_VERSION, 2,
-            EGL_NONE
-    };
-
-    EGLint w, h, dummy, format;
-    EGLint numConfigs;
-    EGLConfig config;
-    EGLSurface surface;
-    EGLContext context;
-
-    EGLDisplay display = eglGetDisplay(EGL_DEFAULT_DISPLAY);
-
-    eglInitialize(display, NULL, NULL);
-
-    /* Here, the application chooses the configuration it desires. In this
-     * sample, we have a very simplified selection process, where we pick
-     * the first EGLConfig that matches our criteria */
-    eglChooseConfig(display, configAttribs, &config, 1, &numConfigs);
-
-
-    context = eglCreateContext(display, config, EGL_NO_CONTEXT, contextAttribs);
-
-//    /* EGL_NATIVE_VISUAL_ID is an attribute of the EGLConfig that is
-//     * guaranteed to be accepted by ANativeWindow_setBuffersGeometry().
-//     * As soon as we picked a EGLConfig, we can safely reconfigure the
-//     * ANativeWindow buffers to match, using EGL_NATIVE_VISUAL_ID. */
-//    eglGetConfigAttrib(display, config, EGL_NATIVE_VISUAL_ID, &format);
-//    ANativeWindow_setBuffersGeometry(engine->nativeWindow, 0, 0, format);
-//    surface = eglCreateWindowSurface(display, config, engine->nativeWindow, surfaceAttribs);
-
-    static const EGLint kSurfaceAttribs[] = {
-            EGL_WIDTH, 1,
-            EGL_HEIGHT, 1,
-            EGL_NONE
-    };
-    surface = eglCreatePbufferSurface(display, config, kSurfaceAttribs);
-
-
-    if (!eglMakeCurrent(display, surface, surface, context)) {
-        LOGE("Unable to eglMakeCurrent");
-//        return;
-    }
-
-//    eglQuerySurface(display, surface, EGL_WIDTH, &w);
-//    eglQuerySurface(display, surface, EGL_HEIGHT, &h);
+//static void egl_init_display(struct engine *engine) {
+//    // Initialize OpenGL ES and EGL
 //
-//    LOGI("Canvas size: %d x %d", w, h);
-//    glViewport(0, 0, w, h);
+//    const EGLint configAttribs[] = {
+//            EGL_RENDERABLE_TYPE, EGL_OPENGL_ES2_BIT,
+//            EGL_SURFACE_TYPE, EGL_PBUFFER_BIT/*EGL_WINDOW_BIT*/,
+//            EGL_RED_SIZE, 8,
+//            EGL_GREEN_SIZE, 8,
+//            EGL_BLUE_SIZE, 8,
+//            EGL_ALPHA_SIZE, 8,
+//            EGL_NONE
+//    };
 //
-//    engine->display = display;
-//    engine->context = context;
-//    engine->surface = surface;
-//    engine->width = w;
-//    engine->height = h;
+//    const EGLint contextAttribs[] = {
+//            EGL_CONTEXT_CLIENT_VERSION, 2,
+//            EGL_NONE
+//    };
 //
-//    // Initialize GL state.
-//    glDisable(GL_DEPTH_TEST);
-//    glEnable(GL_CULL_FACE);
-////    glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_FASTEST);
-////    glHint(GL_LINE_SMOOTH_HINT, GL_NICEST);
-////    glShadeModel(GL_SMOOTH);
+//    const EGLint surfaceAttribs[] = {
+//            EGL_RENDER_BUFFER, EGL_BACK_BUFFER,
+//            EGL_CONTEXT_CLIENT_VERSION, 2,
+//            EGL_NONE
+//    };
 //
-//    // eglSwapBuffers should not automatically clear the screen
-//    eglSurfaceAttrib(display, surface, EGL_SWAP_BEHAVIOR, EGL_BUFFER_PRESERVED);
+//    EGLint w, h, dummy, format;
+//    EGLint numConfigs;
+//    EGLConfig config;
+//    EGLSurface surface;
+//    EGLContext context;
 //
-//    // Initialize Skia OpenGL ES
-
-    SkGraphics::Init();
-
-    const GrGLInterface *fInterface = GrGLCreateNativeInterface();
-    engine->skiaContext = GrContext::Create(kOpenGL_GrBackend, (GrBackendContext) fInterface);
-
-//    GrBackendRenderTargetDesc desc;
-//    desc.fWidth       = w;
-//    desc.fHeight      = h;
-//    desc.fConfig      = kSkia8888_GrPixelConfig;
-//    desc.fOrigin      = kBottomLeft_GrSurfaceOrigin;
-//    desc.fSampleCnt   = 0;
-//    desc.fStencilBits = 8;
+//    EGLDisplay display = eglGetDisplay(EGL_DEFAULT_DISPLAY);
 //
-//    GrGLint buffer;
-//    glGetIntegerv(GL_FRAMEBUFFER_BINDING, &buffer);
-//    // Alternative:
-//    // GR_GL_GetIntegerv(fInterface, GR_GL_FRAMEBUFFER_BINDING, &buffer);
-//    desc.fRenderTargetHandle = buffer;
+//    eglInitialize(display, NULL, NULL);
 //
-//    GrRenderTarget* renderTarget = engine->skiaContext->wrapBackendRenderTarget(desc);
-//    SkAutoTUnref<SkBaseDevice> device(new SkGpuDevice(engine->skiaContext, renderTarget));
+//    eglBindAPI(EGL_OPENGL_ES_API);
 //
-//    // Leaking fRenderTarget. Either wrap it in an SkAutoTUnref<> or unref it
-//    // after creating the device.
-//    SkSafeUnref(renderTarget);
+//    /* Here, the application chooses the configuration it desires. In this
+//     * sample, we have a very simplified selection process, where we pick
+//     * the first EGLConfig that matches our criteria */
+//    eglChooseConfig(display, configAttribs, &config, 1, &numConfigs);
 //
-//    engine->skiaCanvas = new SkCanvas(device);
-
-}
+//
+//    context = eglCreateContext(display, config, EGL_NO_CONTEXT, contextAttribs);
+//
+////    /* EGL_NATIVE_VISUAL_ID is an attribute of the EGLConfig that is
+////     * guaranteed to be accepted by ANativeWindow_setBuffersGeometry().
+////     * As soon as we picked a EGLConfig, we can safely reconfigure the
+////     * ANativeWindow buffers to match, using EGL_NATIVE_VISUAL_ID. */
+////    eglGetConfigAttrib(display, config, EGL_NATIVE_VISUAL_ID, &format);
+////    ANativeWindow_setBuffersGeometry(engine->nativeWindow, 0, 0, format);
+////    surface = eglCreateWindowSurface(display, config, engine->nativeWindow, surfaceAttribs);
+//
+//    static const EGLint kSurfaceAttribs[] = {
+//            EGL_WIDTH, 1,
+//            EGL_HEIGHT, 1,
+//            EGL_LARGEST_PBUFFER, EGL_TRUE,
+//            EGL_NONE
+//    };
+//    surface = eglCreatePbufferSurface(display, config, kSurfaceAttribs);
+//
+//
+//    if (!eglMakeCurrent(display, surface, surface, context)) {
+//        LOGE("Unable to eglMakeCurrent");
+////        return;
+//    }
+//
+////    SkGraphics::Init();
+//
+//    const GrGLInterface *fInterface = GrGLCreateNativeInterface();
+//    engine->skiaContext = GrContext::Create(kOpenGL_GrBackend, (GrBackendContext) fInterface);
+//
+//}
 
 jboolean
 Image::Image::bitmap_save(JNIEnv *env, jobject clazz, jint format, jbyteArray byteArray,
@@ -281,6 +236,7 @@ Image::Image::bitmap_save(JNIEnv *env, jobject clazz, jint format, jbyteArray by
     if (matrixPtr) {
         const SkRect g_rtImg = SkRect::MakeXYWH(0, 0, bm->width(), bm->height());
         SkRect deviceR;
+        sk_sp<SkSurface> surface;
 
         SkMatrix *matrix = reinterpret_cast<SkMatrix *>(matrixPtr);
         //matrix->reset();
@@ -294,17 +250,19 @@ Image::Image::bitmap_save(JNIEnv *env, jobject clazz, jint format, jbyteArray by
 //        newBitmap->allocPixels(imageInfo);//
 
         SkPaint *paint = new SkPaint();
-        paint->setFilterQuality(kNone_SkFilterQuality);
-        paint->setAntiAlias(true);
+//        paint->setFilterQuality(kNone_SkFilterQuality);
+//        paint->setAntiAlias(true);
+        paint->setBlendMode(SkBlendMode::kSrc);
 
-        struct engine engine;
-        memset(&engine, 0, sizeof(engine));
-        engine.nativeWindow = ANativeWindow_fromSurface(env, javaSurface);
-        egl_init_display(&engine);
-        GrContext *context = engine.skiaContext;//GrContext::Create(kOpenGL_GrBackend,(GrBackendContext) glInterface.get());
-        sk_sp<SkSurface> surface(SkSurface::MakeRenderTarget(context, SkBudgeted::kNo, imageInfo));
+//GPU加速还有许多未知问题
+//        struct engine engine;
+//        memset(&engine, 0, sizeof(engine));
+//        engine.nativeWindow = ANativeWindow_fromSurface(env, javaSurface);
+//        egl_init_display(&engine);
+//        GrContext *context = engine.skiaContext;//GrContext::Create(kOpenGL_GrBackend,(GrBackendContext) glInterface.get());
+//         surface = SkSurface::MakeRenderTarget(context, SkBudgeted::kNo, imageInfo);
 
-        if (!surface) {
+        if (!surface) {//if create gpu surface fail.
             LOGE("SkSurface::MakeRenderTarget returned null\n");
             surface = SkSurface::MakeRaster(imageInfo);
         }

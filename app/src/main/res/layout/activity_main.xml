@@ -6,18 +6,10 @@
                 android:layout_height="match_parent"
                 tools:context="xyz.openhh.xcameraview.MainActivity">
 
-    <TextView
-        android:id="@+id/sample_text"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Hello World!"/>
-
-
-    <xyz.openhh.xcameraview.CameraGLSurfaceView
+    <xyz.openhh.xcameraview.CameraSurfaceView
         android:id="@+id/camera_view"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_below="@+id/sample_text"/>
+        android:layout_height="match_parent"/>
 
     <xyz.openhh.xcameraview.RecordButton
         android:id="@+id/take_pic_btn"
