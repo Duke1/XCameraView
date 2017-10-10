@@ -31,13 +31,13 @@ namespace Image {
 
         static jboolean
         bitmap_save(JNIEnv *env, jobject clazz, jint format, jbyteArray byteArray, jint offset,
-                    jint length, jint quality, jstring savePath,jlong matrixPtr);
+                    jint length, jint quality, jstring savePath,jlong matrixPtr,jobject surface);
     };
 
     static const JNINativeMethod methods[] = {
             {
                     "nativeSave",
-                    "(I[BIIILjava/lang/String;J)Z",
+                    "(I[BIIILjava/lang/String;JLandroid/view/Surface;)Z",
                     (void *) Image::bitmap_save
             },
             {
