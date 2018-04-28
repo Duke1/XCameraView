@@ -4,8 +4,13 @@ import android.app.Activity;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Canvas;
+import android.graphics.ImageFormat;
 import android.graphics.Matrix;
+import android.graphics.Rect;
+import android.graphics.SurfaceTexture;
 import android.hardware.Camera;
+import android.os.Debug;
 import android.os.Environment;
 import android.util.AttributeSet;
 import android.util.DisplayMetrics;
@@ -27,12 +32,19 @@ import java.util.List;
 
 import xyz.openhh.imagecore.Image;
 import xyz.openhh.imagecore.ImageMatrix;
+import xyz.openhh.xcameraview.opencv.CvType;
+import xyz.openhh.xcameraview.opencv.Mat;
+import xyz.openhh.xcameraview.opencv.Utils;
 
 /**
  * Created by Duke
  */
 
-public class CameraSurfaceView extends RelativeLayout implements SurfaceHolder.Callback, Camera.AutoFocusCallback, ICameraView {
+public class CameraSurfaceView extends RelativeLayout implements SurfaceHolder.Callback, Camera.AutoFocusCallback, ICameraView, Camera.PreviewCallback {
+
+
+    private float mScale = 0.0f;
+
     public CameraSurfaceView(Context context) {
         this(context, null);
     }
@@ -53,6 +65,7 @@ public class CameraSurfaceView extends RelativeLayout implements SurfaceHolder.C
         initView();
     }
 
+    private static final int MAGIC_TEXTURE_ID = 10;
 
 
     private SurfaceHolder holder;
@@ -60,6 +73,12 @@ public class CameraSurfaceView extends RelativeLayout implements SurfaceHolder.C
 
     private int mScreenWidth;
     private int mScreenHeight;
+    protected byte[] mBuffer;
+    SurfaceTexture mSurface;
+    private int mFrameWidth;
+    private int mFrameHeight;
+
+    protected Bitmap mCacheBitmap;
 
     public static final int dpToPx(Context ctx, float dp) {
         return (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, dp, ctx.getResources().getDisplayMetrics());
@@ -77,6 +96,9 @@ public class CameraSurfaceView extends RelativeLayout implements SurfaceHolder.C
         holder = mCameraSurfaceView.getHolder();//获得surfaceHolder引用
         holder.addCallback(this);
         holder.setType(SurfaceHolder.SURFACE_TYPE_PUSH_BUFFERS);//设置类型
+
+
+        mSurface = new SurfaceTexture(MAGIC_TEXTURE_ID);
     }
 
     @Override
@@ -84,7 +106,8 @@ public class CameraSurfaceView extends RelativeLayout implements SurfaceHolder.C
         Log.i(TAG, "surfaceCreated");
 
         CameraHelper.getInstance().setCameraView(this);
-        CameraHelper.getInstance().openCamera(holder);
+        CameraHelper.getInstance().openCamera(null);
+        CameraHelper.getInstance().setPreviewTexture(mSurface);
     }
 
     @Override
@@ -110,6 +133,7 @@ public class CameraSurfaceView extends RelativeLayout implements SurfaceHolder.C
 
 
     private void setCameraParams(Camera camera, int width, int height) {
+
         Log.i(TAG, "setCameraParams  width=" + width + "  height=" + height);
         Camera.Parameters parameters = camera.getParameters();
         // 获取摄像头支持的PictureSize列表
@@ -142,6 +166,14 @@ public class CameraSurfaceView extends RelativeLayout implements SurfaceHolder.C
             parameters.setPreviewSize(preSize.width, preSize.height);
         }
 
+        mFrameWidth = parameters.getPreviewSize().width;
+        mFrameHeight = parameters.getPreviewSize().height;
+
+        Debug.waitForDebugger();
+        mFrameMat = new Mat(mFrameHeight + (mFrameHeight / 2), mFrameWidth, CvType.CV_8UC1);
+
+        mCacheBitmap = Bitmap.createBitmap(mFrameWidth, mFrameHeight, Bitmap.Config.ARGB_8888);
+
         parameters.setJpegQuality(100); // 设置照片质量
         if (parameters.getSupportedFocusModes().contains(android.hardware.Camera.Parameters.FOCUS_MODE_CONTINUOUS_PICTURE)) {
             parameters.setFocusMode(android.hardware.Camera.Parameters.FOCUS_MODE_CONTINUOUS_PICTURE);// 连续对焦模式
@@ -153,6 +185,15 @@ public class CameraSurfaceView extends RelativeLayout implements SurfaceHolder.C
         parameters.setRotation(degrees);
         camera.setDisplayOrientation(degrees);
         camera.setParameters(parameters);
+
+        //帧缓冲
+        int size = mFrameWidth * mFrameHeight;
+        size = size * ImageFormat.getBitsPerPixel(parameters.getPreviewFormat()) / 8;
+        mBuffer = new byte[size];
+        if (BuildConfig.DEBUG)
+            Log.e(TAG, "frame buffer size :" + size);
+        camera.addCallbackBuffer(mBuffer);
+        camera.setPreviewCallbackWithBuffer(this);
 
     }
 
@@ -253,5 +294,55 @@ public class CameraSurfaceView extends RelativeLayout implements SurfaceHolder.C
     @Override
     public Surface getSurface() {
         return mCameraSurfaceView.getHolder().getSurface();
+    }
+
+
+    @Override
+    public void onPreviewFrame(byte[] data, Camera camera) {
+
+        Log.i(TAG, "onPreviewFrame..." + data.length);
+        drawFrame(data, camera);
+        if (camera != null)
+            camera.addCallbackBuffer(mBuffer);
+    }
+
+    Mat mFrameMat;
+    Mat mRgba = new Mat();
+
+    private void drawFrame(byte[] frame, Camera camera) {
+        if (mCacheBitmap != null) {
+            mFrameMat.put(0, 0, frame);
+
+            Utils.cvtColor(mFrameMat, mRgba, 96, 4);
+
+            Utils.matToBitmap(mRgba, mCacheBitmap);
+
+            Canvas canvas = holder.lockCanvas();
+            if (canvas != null) {
+                canvas.drawColor(0, android.graphics.PorterDuff.Mode.CLEAR);
+                if (BuildConfig.DEBUG)
+                    Log.d(TAG, "mStretch value: " + mScale);
+
+                if (mScale != 0) {
+                    canvas.drawBitmap(mCacheBitmap, new Rect(0, 0, mCacheBitmap.getWidth(), mCacheBitmap.getHeight()),
+                            new Rect((int) ((canvas.getWidth() - mScale * mCacheBitmap.getWidth()) / 2),
+                                    (int) ((canvas.getHeight() - mScale * mCacheBitmap.getHeight()) / 2),
+                                    (int) ((canvas.getWidth() - mScale * mCacheBitmap.getWidth()) / 2 + mScale * mCacheBitmap.getWidth()),
+                                    (int) ((canvas.getHeight() - mScale * mCacheBitmap.getHeight()) / 2 + mScale * mCacheBitmap.getHeight())), null);
+                } else {
+                    canvas.drawBitmap(mCacheBitmap, new Rect(0, 0, mCacheBitmap.getWidth(), mCacheBitmap.getHeight()),
+                            new Rect((canvas.getWidth() - mCacheBitmap.getWidth()) / 2,
+                                    (canvas.getHeight() - mCacheBitmap.getHeight()) / 2,
+                                    (canvas.getWidth() - mCacheBitmap.getWidth()) / 2 + mCacheBitmap.getWidth(),
+                                    (canvas.getHeight() - mCacheBitmap.getHeight()) / 2 + mCacheBitmap.getHeight()), null);
+                }
+
+//                if (mFpsMeter != null) {
+//                    mFpsMeter.measure();
+//                    mFpsMeter.draw(canvas, 20, 30);
+//                }
+                holder.unlockCanvasAndPost(canvas);
+            }
+        }
     }
 }

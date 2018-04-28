@@ -14,7 +14,10 @@ message("OpenCV Version: ${OpenCV_VERSION}")
 
 add_library( native-lib
              SHARED
-             src/main/cpp/native-lib.cpp )
+             src/main/cpp/native-lib.cpp
+             src/main/cpp/CvUtils.cpp
+             src/main/cpp/Mat.cpp
+              )
 
 
 find_library( log-lib

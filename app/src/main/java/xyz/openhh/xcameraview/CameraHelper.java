@@ -45,7 +45,8 @@ public class CameraHelper {
         if (mCamera == null) {
             mCamera = Camera.open();//开启相机
             try {
-                mCamera.setPreviewDisplay(holder);//摄像头画面显示在Surface上
+                if (null != holder)
+                    mCamera.setPreviewDisplay(holder);//摄像头画面显示在Surface上
             } catch (IOException e) {
                 e.printStackTrace();
             }

@@ -9,6 +9,9 @@ import android.view.WindowManager;
 import xyz.openhh.imagecore.Image;
 
 public class MainActivity extends Activity implements OptListener {
+    static {
+        System.loadLibrary("native-lib");
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {

@@ -5,6 +5,7 @@ import javax.microedition.khronos.opengles.GL10;
 
 import android.app.Activity;
 import android.content.Context;
+import android.graphics.ImageFormat;
 import android.graphics.SurfaceTexture;
 import android.hardware.Camera;
 import android.opengl.GLES11Ext;
@@ -26,13 +27,15 @@ import java.util.List;
 import xyz.openhh.imagecore.Image;
 import xyz.openhh.imagecore.ImageMatrix;
 
-public class CameraGLSurfaceView extends GLSurfaceView implements Renderer, SurfaceTexture.OnFrameAvailableListener, ICameraView {
+public class CameraGLSurfaceView extends GLSurfaceView implements Renderer, SurfaceTexture.OnFrameAvailableListener, ICameraView, Camera.PreviewCallback {
     Context mContext;
     SurfaceTexture mSurface;
     int mTextureID = -1;
     DirectDrawer mDirectDrawer;
     private int mScreenWidth;
     private int mScreenHeight;
+
+    protected byte[] mBuffer;
 
     public static final int dpToPx(Context ctx, float dp) {
         return (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, dp, ctx.getResources().getDisplayMetrics());
@@ -164,6 +167,15 @@ public class CameraGLSurfaceView extends GLSurfaceView implements Renderer, Surf
         camera.setDisplayOrientation(degrees);
         camera.setParameters(parameters);
 
+
+        //帧缓冲
+        int size = picSize.width * picSize.height;
+        size = size * ImageFormat.getBitsPerPixel(parameters.getPreviewFormat()) / 8;
+        mBuffer = new byte[size];
+        if (BuildConfig.DEBUG)
+            Log.e(TAG, "frame buffer size :" + size);
+        camera.addCallbackBuffer(mBuffer);
+        camera.setPreviewCallbackWithBuffer(this);
     }
 
     public static int getCameraDisplayOrientation(Activity activity, int cameraId) {
@@ -246,5 +258,14 @@ public class CameraGLSurfaceView extends GLSurfaceView implements Renderer, Surf
     @Override
     public Surface getSurface() {
         return new Surface(mSurface);
+    }
+
+    @Override
+    public void onPreviewFrame(byte[] data, Camera camera) {
+
+        Log.i(TAG, "onPreviewFrame..." + data.length);
+
+        if (camera != null)
+            camera.addCallbackBuffer(mBuffer);
     }
 }
