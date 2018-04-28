@@ -106,7 +106,7 @@ public class CameraHelper {
                 matrix.postRotate(info.orientation);
                 matrix.postScale(0.5f, 0.5f);
 
-                Image.saveToFile(data, Image.CompressFormat.JPEG, 50, filePath, matrix, cameraView.getSurface());
+                Image.saveToFile(data, Image.CompressFormat.JPEG, 100, filePath, matrix, cameraView.getSurface());
 
                 exTime = System.currentTimeMillis() - exTime;
                 Log.e("", "excute time :  " + (exTime / 1000f));
