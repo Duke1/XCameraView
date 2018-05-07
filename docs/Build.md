@@ -23,3 +23,8 @@
     `target_link_libraries(${OpenCV_LIBS})   
      include_directories(${OpenCV_INCLUDE_DIRS}                          )
     `
+    
+##手动编译OpenCV
+1. [下载opencv](https://github.com/opencv)源码,opencv和opencv_contrib放在同一目录;
+2. copy[build_cv.sh](./build_cv.sh)到OpenCV/opencv/platforms/android目录并执行.
+   另一种方法,参考https://github.com/tzutalin/build-opencv-for-android

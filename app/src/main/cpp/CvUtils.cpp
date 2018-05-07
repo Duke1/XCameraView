@@ -6,7 +6,6 @@
 
 #include <android/bitmap.h>
 
-#define LOG_TAG "org.opencv.android.Utils"
 
 #include "log.h"
 
