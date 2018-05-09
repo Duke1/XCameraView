@@ -44,6 +44,7 @@ public class CameraSurfaceView extends RelativeLayout implements SurfaceHolder.C
 
 
     private float mScale = 0.0f;
+    private int degrees;
 
     public CameraSurfaceView(Context context) {
         this(context, null);
@@ -169,10 +170,6 @@ public class CameraSurfaceView extends RelativeLayout implements SurfaceHolder.C
         mFrameWidth = parameters.getPreviewSize().width;
         mFrameHeight = parameters.getPreviewSize().height;
 
-        Debug.waitForDebugger();
-        mFrameMat = new Mat(mFrameHeight + (mFrameHeight / 2), mFrameWidth, CvType.CV_8UC1);
-
-        mCacheBitmap = Bitmap.createBitmap(mFrameWidth, mFrameHeight, Bitmap.Config.ARGB_8888);
 
         parameters.setJpegQuality(100); // 设置照片质量
         if (parameters.getSupportedFocusModes().contains(android.hardware.Camera.Parameters.FOCUS_MODE_CONTINUOUS_PICTURE)) {
@@ -181,10 +178,18 @@ public class CameraSurfaceView extends RelativeLayout implements SurfaceHolder.C
 
         camera.cancelAutoFocus();//自动对焦。
 //        mCamera.setDisplayOrientation(90);// 设置PreviewDisplay的方向，效果就是将捕获的画面旋转多少度显示
-        int degrees = getCameraDisplayOrientation((Activity) getContext(), Camera.CameraInfo.CAMERA_FACING_BACK);
+        degrees = getCameraDisplayOrientation((Activity) getContext(), Camera.CameraInfo.CAMERA_FACING_BACK);
+        if (BuildConfig.DEBUG)
+            Log.e(TAG, "DisplayOrientation:" + degrees);
+
         parameters.setRotation(degrees);
         camera.setDisplayOrientation(degrees);
         camera.setParameters(parameters);
+
+
+        mFrameMat = new Mat(mFrameHeight + (mFrameHeight / 2), mFrameWidth, CvType.CV_8UC1);
+
+        mCacheBitmap = Bitmap.createBitmap(mFrameWidth, mFrameHeight, Bitmap.Config.ARGB_8888);
 
         //帧缓冲
         int size = mFrameWidth * mFrameHeight;
@@ -323,6 +328,8 @@ public class CameraSurfaceView extends RelativeLayout implements SurfaceHolder.C
                 if (BuildConfig.DEBUG)
                     Log.d(TAG, "mStretch value: " + mScale);
 
+                canvas.save();
+                canvas.rotate(degrees, canvas.getWidth() / 2, canvas.getHeight() / 2);
                 if (mScale != 0) {
                     canvas.drawBitmap(mCacheBitmap, new Rect(0, 0, mCacheBitmap.getWidth(), mCacheBitmap.getHeight()),
                             new Rect((int) ((canvas.getWidth() - mScale * mCacheBitmap.getWidth()) / 2),
@@ -335,7 +342,10 @@ public class CameraSurfaceView extends RelativeLayout implements SurfaceHolder.C
                                     (canvas.getHeight() - mCacheBitmap.getHeight()) / 2,
                                     (canvas.getWidth() - mCacheBitmap.getWidth()) / 2 + mCacheBitmap.getWidth(),
                                     (canvas.getHeight() - mCacheBitmap.getHeight()) / 2 + mCacheBitmap.getHeight()), null);
+
                 }
+
+                canvas.restore();
 
 //                if (mFpsMeter != null) {
 //                    mFpsMeter.measure();

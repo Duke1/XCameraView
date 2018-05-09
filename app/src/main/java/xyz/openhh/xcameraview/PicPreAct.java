@@ -39,7 +39,7 @@ public class PicPreAct extends AppCompatActivity {
 
             Bitmap bm = null;
             BitmapFactory.Options options = new BitmapFactory.Options();
-            options.inSampleSize = 8;
+            options.inSampleSize = 1;
             BufferedInputStream bis = new BufferedInputStream(f);
             bm = BitmapFactory.decodeStream(bis, null, options);
             imageView.setImageBitmap(bm);

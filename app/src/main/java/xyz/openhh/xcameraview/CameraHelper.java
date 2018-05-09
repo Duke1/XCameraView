@@ -104,8 +104,8 @@ public class CameraHelper {
                 Camera.CameraInfo info = new Camera.CameraInfo();
                 Camera.getCameraInfo(android.hardware.Camera.CameraInfo.CAMERA_FACING_BACK, info);
                 matrix = new ImageMatrix();
-                matrix.postRotate(info.orientation);
-                matrix.postScale(0.5f, 0.5f);
+//                matrix.postRotate(info.orientation);
+//                matrix.postScale(0.5f, 0.5f);
 
                 Image.saveToFile(data, Image.CompressFormat.JPEG, 100, filePath, matrix, cameraView.getSurface());
 
